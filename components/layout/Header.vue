@@ -1,8 +1,8 @@
 <template>
   <header class="header">
     <!-- Logo区域 -->
-    <div class="logo">
-      <img src="/logo.png" alt="UUININ Logo" />
+    <div class="logo" @click="goToHomePage">
+      <img src="/logo.png" alt="UUININ Logo" class="logo-img" />
     </div>
 
     <!-- 导航菜单 - 基于配置动态生成 -->
@@ -218,6 +218,13 @@ const buttonUrls = {
   'language': '/language-settings'
 };
 
+/**
+ * 点击logo返回首页
+ */
+const goToHomePage = () => {
+  window.location.href = '/'; // 跳转到首页
+};
+
 // 下拉框状态管理
 const isDropdownOpen = ref<boolean[]>(
     navigationConfig.map(item => item.hasDropdown ? false : false)
@@ -309,6 +316,20 @@ onMounted(() => {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+.logo {
+  cursor: pointer; /* 添加指针样式，提示可点击 */
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+  transition: transform 0.2s ease; /* 添加过渡效果 */
+}
+
+.logo:hover .logo-img {
+  transform: scale(1.05); /* 悬停时轻微放大，增强交互感 */
 }
 
 .header {

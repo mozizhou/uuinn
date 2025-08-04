@@ -3,13 +3,11 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
-  <Footer></Footer>
 </template>
 
 <script setup lang="ts">
 // 确保路径正确指向组件文件
 import Header from './components/layout/Header.vue';
-import Footer from './components/layout/Footer.vue';
 </script>
 
 <style>

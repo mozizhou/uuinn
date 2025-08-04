@@ -47,6 +47,7 @@ export default defineNuxtConfig({
     // 对所有页面启用静态生成（SSG）
     '/**': { prerender: true },
     // 动态页面使用服务端渲染
+    '/blog': { ssr: true },
     '/blog/**': { ssr: true }
   }
 })
