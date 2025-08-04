@@ -513,7 +513,6 @@ onUnmounted(() => {
       inset 0 0 5px rgba(255,255,255,0.05);
   transition: all 0.3s ease;
   flex-shrink: 0;
-  border: 1px solid rgba(255,215,0,0.15);
   position: relative;
   overflow: hidden;
 }
@@ -606,6 +605,7 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 1rem;
   color: #f0e6d2;
+  margin-right: 10px;
 }
 
 .role {

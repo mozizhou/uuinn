@@ -40,9 +40,6 @@ const toggleItem = (index: number) => {
 
 <template>
   <section class="faq-section">
-    <PartHero></PartHero>
-    <PartInstantly></PartInstantly>
-    <PartUsersSaying></PartUsersSaying>
     <h2 class="faq-title">FAQ</h2>
     <div
         v-for="(item, index) in faqList"

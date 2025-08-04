@@ -5,8 +5,20 @@
       <!-- 左侧文字区域 -->
       <div class="text-section">
         <h1 class="hero-title">
-          One-Stop AI Smart Shopping Solution for
-          <span class="merchant-tag">Merchant</span>
+          <span class="title-line">One-Stop AI Smart Shopping</span>
+          <span class="for-tag-container">
+            Solution for
+            <div class="tag-container">
+              <span
+                  class="merchant-tag"
+                  :class="{ active: index === currentTagIndex }"
+                  v-for="(tag, index) in tags"
+                  :key="index"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </span>
         </h1>
         <p class="hero-subtitle">Spend Less with More Fun</p>
         <div class="hero-desc">
@@ -55,7 +67,32 @@
 </template>
 
 <script setup lang="ts">
-// 页面逻辑可以在这里添加
+import { ref, onMounted, onUnmounted } from 'vue';
+
+// 定义要循环的标签列表
+const tags = ['Shoppers', 'Merchants', 'Sales', 'Influencers', 'Streamers'];
+const currentTagIndex = ref(0);
+let tagInterval: number | null = null;
+
+// 自动切换标签的函数
+const startTagRotation = () => {
+  // 每2秒切换一次标签
+  tagInterval = window.setInterval(() => {
+    currentTagIndex.value = (currentTagIndex.value + 1) % tags.length;
+  }, 2000);
+};
+
+// 组件挂载时开始自动切换
+onMounted(() => {
+  startTagRotation();
+});
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (tagInterval) {
+    clearInterval(tagInterval);
+  }
+});
 </script>
 
 <style scoped>
@@ -91,6 +128,28 @@
   font-weight: 500;
   line-height: 1.3;
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 两行之间的间距 */
+}
+
+.title-line {
+  display: block; /* 确保第一行文字单独成行 */
+}
+
+.for-tag-container {
+  display: flex;
+  align-items: center; /* 垂直居中对齐for和标签 */
+  gap: 8px; /* for与标签之间的间距 */
+  white-space: nowrap; /* 防止for和标签换行 */
+}
+
+/* 标签容器样式 - 实现上下滚动效果 */
+.tag-container {
+  position: relative;
+  height: 48px; /* 与文字高度匹配 */
+  min-width: 120px; /* 确保标签文字不会被截断 */
+  display: inline-block;
 }
 
 .merchant-tag {
@@ -98,8 +157,26 @@
   color: #fff;
   padding: 4px 12px;
   border-radius: 8px;
-  margin-left: 8px;
   font-size: 28px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap; /* 防止标签文字换行 */
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+/* 激活状态的标签 - 显示在容器中 */
+.merchant-tag.active {
+  opacity: 1;
+  transform: translateY(0);
+  z-index: 1;
+}
+
+/* 上一个标签的退出动画 */
+.merchant-tag:not(.active) {
+  z-index: 0;
 }
 
 .hero-subtitle {
@@ -254,6 +331,14 @@
 
   .phone-img {
     max-width: 320px;
+  }
+
+  .hero-title {
+    font-size: 32px;
+  }
+
+  .merchant-tag {
+    font-size: 24px;
   }
 
   /* 移动端按钮调整 */

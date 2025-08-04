@@ -1,7 +1,142 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+
+// 定义分类列表，用于自动滚动
+const categories = [
+  'Content Creators',
+  'Influencers',
+  'Shoppers',
+  'Merchants',
+  'Suppliers'
+];
 
 const activeCategory = ref('Content Creators');
+let rotationInterval: number | null = null;
+const sidebarRef = ref<HTMLElement | null>(null);
+
+// 模拟不同分类的内容数据
+const categoryContent = {
+  'Content Creators': {
+    image: '/assets/feature-1.jpg',
+    avatar: '/assets/user-avatar.png',
+    name: 'Alex Wang',
+    role: 'Content Creators',
+    testimonial: "I use UUININ to generate product videos in seconds—it saved me so much time."
+  },
+  'Influencers': {
+    image: '/assets/feature-1.jpg',
+    avatar: '/assets/user-avatar.png',
+    name: 'Sara Chen',
+    role: 'Influencers',
+    testimonial: "UUININ helps me manage my brand partnerships efficiently and grow my audience."
+  },
+  'Shoppers': {
+    image: '/assets/feature-1.jpg',
+    avatar: '/assets/user-avatar.png',
+    name: 'Mike Johnson',
+    role: 'Shoppers',
+    testimonial: "Finding the best deals has never been easier with UUININ's AI recommendations."
+  },
+  'Merchants': {
+    image: '/assets/feature-1.jpg',
+    avatar: '/assets/user-avatar.png',
+    name: 'Lisa Zhang',
+    role: 'Merchants',
+    testimonial: "Our sales increased by 30% after implementing UUININ's AI marketing tools."
+  },
+  'Suppliers': {
+    image: '/assets/feature-1.jpg',
+    avatar: '/assets/user-avatar.png',
+    name: 'David Kim',
+    role: 'Suppliers',
+    testimonial: "UUININ streamlined our inventory management and improved delivery times."
+  }
+};
+
+// 获取当前激活分类的内容
+const currentContent = computed(() => {
+  return categoryContent[activeCategory.value];
+});
+
+// 获取当前激活分类的索引
+const currentCategoryIndex = computed(() => {
+  return categories.indexOf(activeCategory.value);
+});
+
+// 自动切换到下一个分类
+const goToNextCategory = () => {
+  const currentIndex = currentCategoryIndex.value;
+  const nextIndex = (currentIndex + 1) % categories.length;
+  activeCategory.value = categories[nextIndex];
+
+  // 仅在按钮不可见时才滚动
+  scrollToActiveButtonIfNeeded();
+};
+
+// 仅在按钮不可见时才滚动到当前激活的按钮
+const scrollToActiveButtonIfNeeded = () => {
+  nextTick(() => {
+    const activeButton = document.querySelector('.category-btn.active');
+    const sidebar = sidebarRef.value;
+
+    if (!activeButton || !sidebar) return;
+
+    const buttonRect = activeButton.getBoundingClientRect();
+    const sidebarRect = sidebar.getBoundingClientRect();
+
+    // 检查按钮是否完全在侧边栏可见区域内
+    const isVisible = (
+        buttonRect.top >= sidebarRect.top &&
+        buttonRect.bottom <= sidebarRect.bottom
+    );
+
+    // 只有当按钮不可见时才滚动
+    if (!isVisible) {
+      activeButton.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+  });
+};
+
+// 开始自动滚动
+const startAutoRotation = () => {
+  // 清除已有计时器
+  if (rotationInterval) {
+    clearInterval(rotationInterval);
+  }
+
+  // 每5秒自动切换一次
+  rotationInterval = window.setInterval(goToNextCategory, 5000);
+};
+
+// 停止自动滚动
+const stopAutoRotation = () => {
+  if (rotationInterval) {
+    clearInterval(rotationInterval);
+    rotationInterval = null;
+  }
+};
+
+// 手动选择分类时重置自动滚动计时器
+const handleCategoryClick = (category: string) => {
+  activeCategory.value = category;
+  stopAutoRotation();
+  startAutoRotation(); // 重置计时器
+  scrollToActiveButtonIfNeeded();
+};
+
+// 组件挂载时开始自动滚动
+onMounted(() => {
+  startAutoRotation();
+});
+
+// 组件卸载时停止自动滚动
+onUnmounted(() => {
+  stopAutoRotation();
+});
 </script>
 
 <template>
@@ -16,36 +151,15 @@ const activeCategory = ref('Content Creators');
 
     <!-- 左侧分类导航 + 右侧内容展示 -->
     <div class="content-wrapper">
-      <aside class="sidebar">
-        <button
-            class="category-btn active"
-            @click="activeCategory = 'Content Creators'"
-        >
-          Content Creators
-        </button>
+      <aside class="sidebar" ref="sidebarRef">
         <button
             class="category-btn"
-            @click="activeCategory = 'Influencers'"
+            :class="{ active: activeCategory === category }"
+            @click="handleCategoryClick(category)"
+            v-for="category in categories"
+            :key="category"
         >
-          Influencers
-        </button>
-        <button
-            class="category-btn"
-            @click="activeCategory = 'Shoppers'"
-        >
-          Shoppers
-        </button>
-        <button
-            class="category-btn"
-            @click="activeCategory = 'Merchants'"
-        >
-          Merchants
-        </button>
-        <button
-            class="category-btn"
-            @click="activeCategory = 'Suppliers'"
-        >
-          Suppliers
+          {{ category }}
         </button>
       </aside>
 
@@ -54,26 +168,26 @@ const activeCategory = ref('Content Creators');
         <div class="card">
           <!-- 背景图片 -->
           <img
-              src="/assets/feature-1.jpg"
-              alt="Use Case Preview"
+              :src="currentContent.image"
+              :alt="`${activeCategory} Use Case Preview`"
               class="card-bg"
           >
           <!-- 评价浮层 -->
           <div class="testimonial-overlay">
             <div class="user-info">
               <img
-                  src="/assets/user-avatar.png"
-                  alt="User Avatar"
+                  :src="currentContent.avatar"
+                  :alt="`${currentContent.name} Avatar`"
                   class="avatar"
               >
               <div class="user-details">
-                <span class="user-name">Alex Wang</span>
-                <span class="user-role">Content Creators</span>
+                <span class="user-name">{{ currentContent.name }}</span>
+                <span class="user-role">{{ currentContent.role }}</span>
               </div>
             </div>
             <button class="try-free-btn">Try Free</button>
             <p class="testimonial-text">
-              “I use UUININ to generate product videos in seconds—it saved me so much time.”
+              {{ currentContent.testimonial }}
             </p>
           </div>
         </div>
@@ -86,22 +200,22 @@ const activeCategory = ref('Content Creators');
 .use-cases-section {
   background-color: #000;
   color: #fff;
-  padding: 6rem 2rem; /* 扩大上下内边距 */
+  padding: 6rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* 标题区域 - 扩大尺寸 */
+/* 标题区域 */
 .section-header {
-  max-width: 1400px; /* 加宽容器 */
+  max-width: 1400px;
   width: 100%;
-  margin-bottom: 4rem; /* 增加底部间距 */
+  margin-bottom: 4rem;
 }
 .main-title {
-  font-size: 2.5rem; /* 增大标题字体 */
+  font-size: 2.5rem;
   font-weight: 600;
-  line-height: 1.5; /* 增加行高 */
+  line-height: 1.5;
   text-align: center;
   padding: 0 1rem;
 }
@@ -121,32 +235,56 @@ const activeCategory = ref('Content Creators');
   border-radius: 3px;
 }
 
-/* 内容容器 - 扩大间距 */
+/* 内容容器 */
 .content-wrapper {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 3rem; /* 增大左右区域间距 */
-  max-width: 1400px; /* 加宽整体容器 */
+  gap: 3rem;
+  max-width: 1400px;
   width: 100%;
   padding: 0 1rem;
 }
 
-/* 左侧侧边栏 - 扩大按钮 */
+/* 左侧侧边栏 */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* 增大按钮间距 */
-  min-width: 260px; /* 加宽侧边栏 */
+  gap: 1.5rem;
+  min-width: 260px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 1rem;
+  scroll-behavior: smooth;
 }
+
+/* 自定义滚动条 */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .category-btn {
   background-color: #1a1a1a;
   border: 1px solid #333;
   color: #fff;
-  padding: 1.25rem 1.5rem; /* 加大按钮内边距 */
-  border-radius: 10px; /* 加大圆角 */
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1.15rem; /* 增大按钮字体 */
+  font-size: 1.15rem;
   transition: all 0.3s ease;
   text-align: left;
   line-height: 1.4;
@@ -155,25 +293,25 @@ const activeCategory = ref('Content Creators');
 .category-btn:hover {
   background-color: #1d51fe;
   border-color: #1d51fe;
-  transform: translateX(10px); /* 加大位移效果 */
-  box-shadow: 0 4px 12px rgba(29, 81, 254, 0.3); /* 增加阴影 */
+  transform: translateX(10px);
+  box-shadow: 0 4px 12px rgba(29, 81, 254, 0.3);
 }
 
-/* 右侧内容区 - 整体放大 */
+/* 右侧内容区 */
 .main-content {
   flex: 1;
-  min-width: 350px; /* 加大最小宽度 */
-  max-width: 700px; /* 加宽最大宽度 */
+  min-width: 350px;
+  max-width: 700px;
 }
 .card {
   position: relative;
-  border-radius: 16px; /* 加大圆角 */
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.5); /* 加深阴影 */
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
   transform: transition 0.3s ease;
 }
 .card:hover {
-  transform: translateY(-5px); /* 增加悬停上浮效果 */
+  transform: translateY(-5px);
 }
 .card-bg {
   width: 100%;
@@ -183,39 +321,39 @@ const activeCategory = ref('Content Creators');
   transition: transform 0.5s ease;
 }
 .card:hover .card-bg {
-  transform: scale(1.03); /* 图片轻微放大效果 */
+  transform: scale(1.03);
 }
 
-/* 评价浮层 - 扩大尺寸 */
+/* 评价浮层 */
 .testimonial-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0,0,0,0.8); /* 稍加深背景 */
-  margin: 1.8rem; /* 加大边距 */
-  border-radius: 14px; /* 加大圆角 */
+  background: rgba(0,0,0,0.8);
+  margin: 1.8rem;
+  border-radius: 14px;
   color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-/* 用户信息行 - 放大元素 */
+/* 用户信息行 */
 .user-info {
   display: flex;
   align-items: center;
 }
 .avatar {
-  width: 70px; /* 加大头像 */
+  width: 70px;
   height: 70px;
   border-radius: 50%;
-  margin: 1.25rem 1.25rem 0; /* 加大边距 */
-  border: 2.5px solid #1d51fe; /* 加粗边框 */
+  margin: 1.25rem 1.25rem 0;
+  border: 2.5px solid #1d51fe;
   transition: transform 0.3s ease;
 }
 .user-info:hover .avatar {
-  transform: scale(1.05); /* 头像悬停放大 */
+  transform: scale(1.05);
 }
 .user-details {
   display: flex;
@@ -223,42 +361,42 @@ const activeCategory = ref('Content Creators');
 }
 .user-name {
   font-weight: 600;
-  font-size: 1.2rem; /* 加大姓名字体 */
+  font-size: 1.2rem;
   line-height: 1.3;
 }
 .user-role {
-  font-size: 0.95rem; /* 加大角色字体 */
+  font-size: 0.95rem;
   color: #ccc;
   line-height: 1.3;
 }
 
-/* 按钮 - 放大尺寸 */
+/* 按钮 */
 .try-free-btn {
   position: absolute;
   top: 1.8rem;
   right: 1.8rem;
   background-color: rgba(51, 63, 255, 1);
   color: #fff;
-  padding: 0.75rem 1.5rem; /* 加大按钮 */
-  border-radius: 10px; /* 加大圆角 */
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  font-size: 1rem; /* 加大按钮字体 */
+  font-size: 1rem;
   font-weight: 500;
   transition: all 0.3s ease;
 }
 .try-free-btn:hover {
-  transform: translateY(-3px); /* 加大上浮效果 */
-  box-shadow: 0 4px 12px rgba(51, 63, 255, 0.4); /* 增加按钮阴影 */
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(51, 63, 255, 0.4);
   background-color: rgba(61, 73, 255, 1);
 }
 
-/* 评价文案 - 放大字体 */
+/* 评价文案 */
 .testimonial-text {
-  font-size: 1rem; /* 加大文案字体 */
-  line-height: 1.8; /* 增加行高 */
+  font-size: 1rem;
+  line-height: 1.8;
   font-weight: 300;
-  margin: 1rem 1.25rem 1.8rem 1.25rem; /* 调整边距 */
+  margin: 1rem 1.25rem 1.8rem 1.25rem;
   transform: translateY(10px);
   animation: fadeInUp 0.6s forwards;
   animation-delay: 0.2s;
@@ -272,7 +410,7 @@ const activeCategory = ref('Content Creators');
   }
 }
 
-/* 响应式适配 - 按比例调整 */
+/* 响应式适配 */
 @media (max-width: 1024px) {
   .main-title {
     font-size: 2.2rem;
@@ -300,17 +438,28 @@ const activeCategory = ref('Content Creators');
 
   .sidebar {
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
     min-width: auto;
-    gap: 0.8rem;
+    max-height: auto;
+    width: 100%;
+    padding-right: 0;
+    padding-bottom: 1rem;
+  }
+
+  /* 移动端横向滚动条 */
+  .sidebar::-webkit-scrollbar {
+    height: 4px;
   }
 
   .category-btn {
-    flex: 1;
+    flex: 0 0 auto;
     text-align: center;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     font-size: 1rem;
+    margin-right: 0.8rem;
   }
 
   .main-content {

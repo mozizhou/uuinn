@@ -2,8 +2,9 @@
   <section class="feature-block" :class="{ reverse }">
     <div class="text-group">
       <h2 class="feature-title">{{ title }}</h2>
+      <h4 class="sub-title">{{ subTitle }}</h4>
       <p class="feature-desc" v-html="description"></p>
-      <div class="btn-group">
+      <div class="btn-group" v-if="buttons.length">
         <button
             class="feature-btn"
             :class="button.type"
@@ -28,16 +29,15 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
 
-// 定义按钮接口
 interface Button {
   text: string;
   type: 'primary' | 'ghost' | 'outline';
   action?: () => void;
 }
 
-// 定义组件props
 const props = defineProps<{
   title: string;
+  subTitle?: string;
   description: string;
   imageUrl: string;
   imageAlt: string;
@@ -45,81 +45,77 @@ const props = defineProps<{
   reverse?: boolean;
 }>();
 
-// 处理按钮点击事件
 const handleButtonClick = (button: Button) => {
-  if (button.action) {
-    button.action();
-  } else {
-    // 默认行为可以在这里定义，比如打印日志
-    console.log(`Button clicked: ${button.text}`);
-  }
+  button.action?.();
 };
 </script>
 
 <style scoped>
-/* 单个板块布局 */
 .feature-block {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 120px; /* 文字与图片的水平间距 */
+  gap: 60px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  padding: 60px 20px;
 }
 
-/* 反向排列（用于左右切换） */
 .reverse {
   flex-direction: row-reverse;
 }
 
-/* 文字组样式 */
 .text-group {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   min-width: 0;
-  padding: 0 40px;
 }
 
 .feature-title {
   font-size: 28px;
-  font-weight: 600;
-  line-height: 1.4;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
+  margin: 0;
+}
+
+.sub-title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  opacity: 0.8;
   color: #fff;
   margin: 0;
 }
 
 .feature-desc {
   font-size: 16px;
-  line-height: 1.8;
+  line-height: 1.6;
   color: #ccc;
   width: 100%;
 }
 
-/* 按钮组 */
 .btn-group {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-self: flex-start;
 }
 
-/* 按钮样式 */
 .feature-btn {
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 16px;
+  font-size: 14px;
+  border: none;
 }
 
-/* 按钮类型样式 */
 .feature-btn.primary {
+  background-color: #007bff;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  width: 125px;
-  font-size: 14px;
 }
 
 .feature-btn.primary:hover {
@@ -127,72 +123,46 @@ const handleButtonClick = (button: Button) => {
   transform: translateY(-2px);
 }
 
-.feature-btn.outline {
+.feature-btn.ghost {
   background-color: transparent;
   color: #007bff;
-  border: 2px solid #007bff;
+  border: 1px solid #007bff;
 }
 
-.feature-btn.outline:hover {
+.feature-btn.ghost:hover {
   background-color: #007bff1a;
   transform: translateY(-2px);
 }
 
-.feature-btn.ghost {
-  background-color: transparent;
-  color: #ccc;
-  border: 2px solid #444;
-}
-
-.feature-btn.ghost:hover {
-  border-color: #ccc;
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-/* 图片组样式 */
 .image-group {
-  flex: 0 0 45%;
+  flex: 0 0 40%;
   display: flex;
   justify-content: center;
-  padding: 0 20px;
 }
 
 .feature-img {
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0, 123, 255, 0.1);
-}
-
-/* 响应式适配 */
-@media (max-width: 1200px) {
-  .feature-block {
-    gap: 80px;
-    max-width: 1400px;
-  }
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 123, 255, 0.1);
 }
 
 @media (max-width: 992px) {
   .feature-block {
     flex-direction: column;
     text-align: left;
-    gap: 40px;
+    gap: 30px;
+    padding: 40px 20px;
   }
 
   .text-group {
     align-items: flex-start;
-    padding: 0;
   }
 
   .image-group {
     flex: 1;
     width: 100%;
     justify-content: flex-start;
-  }
-
-  .feature-img {
-    max-width: 100%;
   }
 }
 </style>
