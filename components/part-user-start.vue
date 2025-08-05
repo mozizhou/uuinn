@@ -10,7 +10,6 @@ interface Testimonial {
   rating: number;
 }
 
-// 关键修复：定义明确的滚动状态接口
 interface ScrollState {
   animationId: number | null;
   startTime: number;
@@ -19,7 +18,7 @@ interface ScrollState {
   baseWidth: number;
   totalWidth: number;
   currentPosition: number;
-  initialOffset: number; // 设为必需属性，确保始终有值
+  initialOffset: number;
 }
 
 // 第一行数据集
@@ -100,7 +99,7 @@ const rightTrack = ref<HTMLElement | null>(null);
 const leftList = ref<HTMLElement | null>(null);
 const rightList = ref<HTMLElement | null>(null);
 
-// 关键修复：使用明确的类型定义并初始化所有属性
+// 滚动状态
 const scrollStates = ref<{
   left: ScrollState;
   right: ScrollState;
@@ -113,7 +112,7 @@ const scrollStates = ref<{
     baseWidth: 0,
     totalWidth: 0,
     currentPosition: 0,
-    initialOffset: 0 // 第一行也初始化该属性，虽然不使用
+    initialOffset: 0
   },
   right: {
     animationId: null,
@@ -123,7 +122,7 @@ const scrollStates = ref<{
     baseWidth: 0,
     totalWidth: 0,
     currentPosition: 0,
-    initialOffset: 0 // 确保初始值为number类型
+    initialOffset: 0
   }
 });
 
@@ -163,10 +162,11 @@ function getExtendedTestimonials(
   return extendedData;
 }
 
-// 星级判断逻辑
-const isFullStar = (star: number, rating: number) => rating >= star;
-const isHalfStar = (star: number, rating: number) => rating >= star - 0.5 && rating < star;
-const isEmptyStar = (star: number, rating: number) => rating < star - 0.5;
+// 星级判断逻辑 - 优化半星计算
+const getStarFillPercentage = (star: number, rating: number) => {
+  const starValue = rating - (star - 1);
+  return Math.max(0, Math.min(100, Math.round(starValue * 100)));
+};
 
 // 滚动配置
 const pixelsPerSecond = 30;
@@ -189,9 +189,8 @@ onMounted(async () => {
   scrollStates.value.right.baseWidth = base2Width;
   scrollStates.value.right.totalWidth = rightList.value.offsetWidth;
 
-  // 设置第二行初始偏移量 - 直接使用已验证的元素引用
+  // 设置第二行初始偏移量
   scrollStates.value.right.initialOffset = - (scrollStates.value.right.totalWidth - scrollStates.value.right.baseWidth);
-  // 这里已经通过前面的if判断确保了rightTrack.value存在，所以可以安全使用
   rightTrack.value.style.transform = `translateX(${scrollStates.value.right.initialOffset}px)`;
   scrollStates.value.right.currentPosition = scrollStates.value.right.initialOffset;
 
@@ -240,17 +239,15 @@ function restartScroll(direction: 'left' | 'right') {
   state.startTime = performance.now();
   state.pausedAt = 0;
 
-  // 重启时恢复初始位置 - 修复可选链赋值问题
+  // 重启时恢复初始位置
   if (direction === 'right') {
     state.currentPosition = state.initialOffset;
-    // 先检查元素是否存在，再进行赋值
     const rightTrackEl = rightTrack.value;
     if (rightTrackEl) {
       rightTrackEl.style.transform = `translateX(${state.initialOffset}px)`;
     }
   } else {
     state.currentPosition = 0;
-    // 先检查元素是否存在，再进行赋值
     const leftTrackEl = leftTrack.value;
     if (leftTrackEl) {
       leftTrackEl.style.transform = `translateX(0)`;
@@ -364,23 +361,28 @@ onUnmounted(() => {
                 :key="`left-${index}`"
                 class="testimonial-card"
             >
-              <!-- 卡片内容保持不变 -->
               <div class="gloss-overlay"></div>
               <div class="stars">
                 <div
                     class="star"
                     v-for="star in 5"
                     :key="star"
-                    :class="{
-                    'full': isFullStar(star, item.rating),
-                    'half': isHalfStar(star, item.rating),
-                    'empty': isEmptyStar(star, item.rating)
-                  }"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="star-icon">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                        :style="{
+                        fill: getStarFillPercentage(star, item.rating) > 0 ? '#ffc10b' : 'none',
+                        stroke: getStarFillPercentage(star, item.rating) > 0 ? '#555' : 'rgba(255,255,255,0.3)',
+                        strokeWidth: 1
+                      }"
+                    />
+                    <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                        class="star-fill"
+                        :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(star, item.rating)}% 0 0)` }"
+                    />
                   </svg>
-                  <div class="half-mask" v-if="isHalfStar(star, item.rating)"></div>
                 </div>
               </div>
               <div class="user-info">
@@ -405,23 +407,28 @@ onUnmounted(() => {
                 :key="`right-${index}`"
                 class="testimonial-card"
             >
-              <!-- 卡片内容保持不变 -->
               <div class="gloss-overlay"></div>
               <div class="stars">
                 <div
                     class="star"
                     v-for="star in 5"
                     :key="star"
-                    :class="{
-                    'full': isFullStar(star, item.rating),
-                    'half': isHalfStar(star, item.rating),
-                    'empty': isEmptyStar(star, item.rating)
-                  }"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="star-icon">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                        :style="{
+                        fill: getStarFillPercentage(star, item.rating) > 0 ? '#ffc10b' : 'none',
+                        stroke: getStarFillPercentage(star, item.rating) > 0 ? '#555' : 'rgba(255,255,255,0.3)',
+                        strokeWidth: 1
+                      }"
+                    />
+                    <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                        class="star-fill"
+                        :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(star, item.rating)}% 0 0)` }"
+                    />
                   </svg>
-                  <div class="half-mask" v-if="isHalfStar(star, item.rating)"></div>
                 </div>
               </div>
               <div class="user-info">
@@ -441,7 +448,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* 样式保持不变 */
 .testimonial-section {
   background-color: #000;
   color: #fff;
@@ -556,31 +562,41 @@ onUnmounted(() => {
   position: relative;
   width: 20px;
   height: 20px;
+  transition: transform 0.3s ease;
 }
 
+/* 星级图标优化 */
 .star-icon {
   width: 100%;
   height: 100%;
-  fill: #555;
-  transition: fill 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.star.full .star-icon {
-  fill: #ffd700;
-}
-
-.star.half .star-icon {
-  fill: #ffd700;
-}
-
-.half-mask {
+/* 星级填充效果 - 使用金色渐变增强视觉效果 */
+.star-fill {
+  fill: url(#starGradient);
   position: absolute;
   top: 0;
-  right: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(30, 30, 30, 1) 0%, rgb(0, 0, 0) 100%);
-  z-index: 1;
+  left: 0;
+  transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 定义金色渐变 */
+.testimonial-card::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* 卡片悬停时星级微动画 */
+.testimonial-card:hover .star {
+  transform: scale(1.1);
+}
+
+.testimonial-card:hover .star:nth-child(2n) {
+  transition-delay: 0.1s;
 }
 
 .user-info {
@@ -623,6 +639,14 @@ onUnmounted(() => {
   z-index: 2;
 }
 
+/* 添加金色渐变定义 */
+.star-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .testimonial-section {
     padding: 4rem 1.5rem;
@@ -637,5 +661,16 @@ onUnmounted(() => {
     min-width: 200px;
     padding: 1rem;
   }
+}
+
+/* 添加渐变定义 */
+::v-deep .star-gradient {
+  stop-color: #ffd700;
+  stop-opacity: 1;
+}
+
+::v-deep .star-gradient-secondary {
+  stop-color: #ffb800;
+  stop-opacity: 1;
 }
 </style>

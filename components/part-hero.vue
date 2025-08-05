@@ -29,11 +29,11 @@
         <div class="app-buttons">
           <button class="app-btn android-btn">
             <img src="/android-icon.png" alt="Android icon" class="app-icon" />
-            Android版
+            Android
           </button>
           <button class="app-btn ios-btn">
             <img src="/ios-icon.png" alt="iOS icon" class="app-icon" />
-            App Store版
+            App Store
           </button>
         </div>
       </div>

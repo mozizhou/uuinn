@@ -43,7 +43,7 @@ const featuresConfig: FeatureConfig[] = [
       price comparisons, and random free product giveaways.  Let AI help you shop smarter.`,
     imageUrl: '/images/feature-1.png',
     imageAlt: 'Smarter Shopping Preview',
-    imageStyle: 'width: 650px',
+    imageStyle: 'width: 450px',
     buttons: [
       { text: 'Shop Now', type: 'primary' }
     ]
