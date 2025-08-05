@@ -8,6 +8,7 @@
         :description="feature.description"
         :imageUrl="feature.imageUrl"
         :imageAlt="feature.imageAlt"
+        :imageStyle="feature?.imageStyle"
         :buttons="feature.buttons"
         :reverse="feature.reverse"
     />
@@ -29,6 +30,7 @@ interface FeatureConfig {
   description: string;
   imageUrl: string;
   imageAlt: string;
+  imageStyle?: string;
   buttons: FeatureButton[];
   reverse?: boolean; // 是否反向排列
 }
@@ -41,6 +43,7 @@ const featuresConfig: FeatureConfig[] = [
       price comparisons, and random free product giveaways.  Let AI help you shop smarter.`,
     imageUrl: '/images/feature-1.png',
     imageAlt: 'Smarter Shopping Preview',
+    imageStyle: 'width: 650px',
     buttons: [
       { text: 'Shop Now', type: 'primary' }
     ]
@@ -75,9 +78,8 @@ const featuresConfig: FeatureConfig[] = [
 .features-section {
   background-color: #000;
   color: #fff;
-  padding: 0 40px;
+  padding: 0 0;
   display: flex;
   flex-direction: column;
-  gap: 120px; /* 板块之间的垂直距离 */
 }
 </style>

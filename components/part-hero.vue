@@ -101,7 +101,7 @@ onUnmounted(() => {
   color: #fff;
   min-height: calc(100vh - 72px); /* 减去Header高度 */
   box-sizing: border-box;
-  padding: 60px 40px 80px; /* 上下内边距，左右保持与Header一致 */
+  padding: 60px 40px 0; /* 上下内边距，左右保持与Header一致 */
 }
 
 /* 主内容区域：文字左，图片右 */

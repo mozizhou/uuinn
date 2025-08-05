@@ -56,7 +56,7 @@ const fetchBlogPosts = async () => {
     hasError.value = false;
 
     // 替换为实际的API地址
-    const response = await fetch('https://uuinn.local/wp-json/wp/v2/posts?per_page=5&status=publish&_embed=1');
+    const response = await fetch('http://47.99.32.217/wp-json/wp/v2/posts?per_page=5&status=publish&_embed=1');
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

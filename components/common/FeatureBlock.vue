@@ -20,6 +20,7 @@
       <img
           :src="imageUrl"
           :alt="imageAlt"
+          :style="imageStyle"
           class="feature-img"
       >
     </div>
@@ -41,6 +42,7 @@ const props = defineProps<{
   description: string;
   imageUrl: string;
   imageAlt: string;
+  imageStyle?: string;
   buttons: Button[];
   reverse?: boolean;
 }>();
@@ -59,7 +61,7 @@ const handleButtonClick = (button: Button) => {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  padding: 60px 20px;
+  padding: 0 20px;
 }
 
 .reverse {
@@ -135,7 +137,6 @@ const handleButtonClick = (button: Button) => {
 }
 
 .image-group {
-  flex: 0 0 40%;
   display: flex;
   justify-content: center;
 }

@@ -131,7 +131,7 @@ onUnmounted(() => {
 })
 
 // WordPress 配置
-const wordpressApiUrl = 'https://uuinn.local/wp-json/wp/v2'
+const wordpressApiUrl = 'http://47.99.32.217/wp-json/wp/v2'
 const perPage = 9
 
 // 响应式数据 - 将单选改为多选数组
